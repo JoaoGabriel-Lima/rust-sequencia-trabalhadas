@@ -100,3 +100,122 @@ fn main() {
         desenvolvedor_max_slots, max_slots
     );
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::structures::slot_semanal::SlotSemanal;
+
+    #[test]
+    fn test_encontrar_desenvolvedor_com_mais_horas() {
+        let mut desenvolvedores = HashMap::new();
+
+        // Criar um desenvolvedor com muitas horas interruptas
+        let mut alice = Desenvolvedor::new("Alice".to_string());
+        alice.adicionar_slot(SlotSemanal {
+            dia_semana: 1,
+            hora_inicio: 9,
+            hora_fim: 12,
+        });
+        alice.adicionar_slot(SlotSemanal {
+            dia_semana: 1,
+            hora_inicio: 12,
+            hora_fim: 15,
+        });
+        alice.adicionar_slot(SlotSemanal {
+            dia_semana: 1,
+            hora_inicio: 15,
+            hora_fim: 18,
+        });
+
+        // Criar um desenvolvedor com menos horas interruptas
+        let mut bob = Desenvolvedor::new("Bob".to_string());
+        bob.adicionar_slot(SlotSemanal {
+            dia_semana: 2,
+            hora_inicio: 10,
+            hora_fim: 12,
+        });
+        bob.adicionar_slot(SlotSemanal {
+            dia_semana: 3,
+            hora_inicio: 13,
+            hora_fim: 15,
+        });
+
+        desenvolvedores.insert(alice.nome.clone(), alice);
+        desenvolvedores.insert(bob.nome.clone(), bob);
+
+        // Verificar se Alice tem mais horas interruptas
+        let mut max_horas = 0;
+        let mut desenvolvedor_max_horas = String::new();
+
+        for (nome, desenvolvedor) in &desenvolvedores {
+            let (horas, _) = desenvolvedor.horas_interruptas_trabalhadas();
+            if horas > max_horas {
+                max_horas = horas;
+                desenvolvedor_max_horas = nome.clone();
+            }
+        }
+
+        assert_eq!(desenvolvedor_max_horas, "Alice");
+        assert_eq!(max_horas, 9); // 9 horas consecutivas (9 às 18)
+    }
+
+    #[test]
+    fn test_encontrar_desenvolvedor_com_mais_slots() {
+        let mut desenvolvedores = HashMap::new();
+
+        // Criar um desenvolvedor com vários slots consecutivos
+        let mut alice = Desenvolvedor::new("Alice".to_string());
+        alice.adicionar_slot(SlotSemanal {
+            dia_semana: 1,
+            hora_inicio: 9,
+            hora_fim: 10,
+        });
+        alice.adicionar_slot(SlotSemanal {
+            dia_semana: 1,
+            hora_inicio: 10,
+            hora_fim: 11,
+        });
+        alice.adicionar_slot(SlotSemanal {
+            dia_semana: 1,
+            hora_inicio: 11,
+            hora_fim: 12,
+        });
+        alice.adicionar_slot(SlotSemanal {
+            dia_semana: 1,
+            hora_inicio: 12,
+            hora_fim: 13,
+        });
+
+        // Criar um desenvolvedor com menos slots consecutivos
+        let mut bob = Desenvolvedor::new("Bob".to_string());
+        bob.adicionar_slot(SlotSemanal {
+            dia_semana: 2,
+            hora_inicio: 10,
+            hora_fim: 11,
+        });
+        bob.adicionar_slot(SlotSemanal {
+            dia_semana: 2,
+            hora_inicio: 11,
+            hora_fim: 12,
+        });
+
+        desenvolvedores.insert(alice.nome.clone(), alice);
+        desenvolvedores.insert(bob.nome.clone(), bob);
+
+        // Verificar se Alice tem mais slots consecutivos
+        let mut max_slots = 0;
+        let mut desenvolvedor_max_slots = String::new();
+
+        for (nome, desenvolvedor) in &desenvolvedores {
+            let (_, slots) = desenvolvedor.horas_interruptas_trabalhadas();
+            if slots > max_slots {
+                max_slots = slots;
+                desenvolvedor_max_slots = nome.clone();
+            }
+        }
+
+        assert_eq!(desenvolvedor_max_slots, "Alice");
+        assert_eq!(max_slots, 4); // 4 slots consecutivos
+    }
+}

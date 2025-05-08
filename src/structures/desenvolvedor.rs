@@ -62,3 +62,97 @@ impl Desenvolvedor {
         (maior_total_horas as u8, maior_num_slots)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_new_desenvolvedor() {
+        let dev = Desenvolvedor::new("Carlos".to_string());
+        assert_eq!(dev.nome, "Carlos");
+        assert!(dev.slots_semana.is_empty());
+    }
+
+    #[test]
+    fn test_adicionar_slot() {
+        let mut dev = Desenvolvedor::new("Carlos".to_string());
+        let slot = SlotSemanal {
+            dia_semana: 1,
+            hora_inicio: 9,
+            hora_fim: 12,
+        };
+        dev.adicionar_slot(slot);
+        assert_eq!(dev.slots_semana.len(), 1);
+        assert_eq!(dev.slots_semana[0].dia_semana, 1);
+        assert_eq!(dev.slots_semana[0].hora_inicio, 9);
+        assert_eq!(dev.slots_semana[0].hora_fim, 12);
+    }
+
+    #[test]
+    fn test_horas_interruptas_sem_slots() {
+        let dev = Desenvolvedor::new("Carlos".to_string());
+        let (horas, num_slots) = dev.horas_interruptas_trabalhadas();
+        assert_eq!(horas, 0);
+        assert_eq!(num_slots, 0);
+    }
+
+    #[test]
+    fn test_horas_interruptas_com_slots_consecutivos() {
+        let mut dev = Desenvolvedor::new("Carlos".to_string());
+
+        // Adicionar 3 slots consecutivos no mesmo dia
+        dev.adicionar_slot(SlotSemanal {
+            dia_semana: 1,
+            hora_inicio: 9,
+            hora_fim: 11,
+        });
+        dev.adicionar_slot(SlotSemanal {
+            dia_semana: 1,
+            hora_inicio: 11,
+            hora_fim: 13,
+        });
+        dev.adicionar_slot(SlotSemanal {
+            dia_semana: 1,
+            hora_inicio: 13,
+            hora_fim: 15,
+        });
+
+        // Adicionar um slot não consecutivo
+        dev.adicionar_slot(SlotSemanal {
+            dia_semana: 2,
+            hora_inicio: 10,
+            hora_fim: 12,
+        });
+
+        let (horas, num_slots) = dev.horas_interruptas_trabalhadas();
+        assert_eq!(horas, 6); // 3 slots consecutivos totalizando 6 horas
+        assert_eq!(num_slots, 3); // 3 slots consecutivos
+    }
+
+    #[test]
+    fn test_horas_interruptas_com_slots_nao_consecutivos() {
+        let mut dev = Desenvolvedor::new("Carlos".to_string());
+
+        // Adicionar slots não consecutivos
+        dev.adicionar_slot(SlotSemanal {
+            dia_semana: 1,
+            hora_inicio: 9,
+            hora_fim: 11,
+        });
+        dev.adicionar_slot(SlotSemanal {
+            dia_semana: 2,
+            hora_inicio: 11,
+            hora_fim: 14,
+        });
+        dev.adicionar_slot(SlotSemanal {
+            dia_semana: 3,
+            hora_inicio: 10,
+            hora_fim: 15,
+        });
+
+        let (horas, num_slots) = dev.horas_interruptas_trabalhadas();
+        assert_eq!(horas, 5); // O slot mais longo tem 5 horas (10 às 15)
+        assert_eq!(num_slots, 1); // Apenas 1 slot consecutivo (ele mesmo)
+    }
+}
